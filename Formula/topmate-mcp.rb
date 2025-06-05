@@ -14,8 +14,23 @@ class TopmateMcp < Formula
     depends_on "python@3.12"
   
     def install
-      ENV["PYTHONPATH"] = libexec/"lib/python3.12/site-packages"
-      virtualenv_install_with_resources
+      # Create virtualenv and install dependencies
+      virtualenv_create(libexec, "python3.12")
+      
+      # Install dependencies manually
+      system libexec/"bin/pip", "install", "fastmcp>=2.6.1"
+      system libexec/"bin/pip", "install", "httpx>=0.28.1"
+      system libexec/"bin/pip", "install", "uvicorn[standard]>=0.30.0"
+      
+      # Copy the main script
+      libexec.install "main.py"
+      
+      # Create wrapper script
+      (bin/"topmate-mcp").write <<~EOS
+        #!/bin/bash
+        export PYTHONPATH="#{libexec}:$PYTHONPATH"
+        exec "#{libexec}/bin/python" "#{libexec}/main.py" "$@"
+      EOS
     end
   
     def caveats
@@ -50,6 +65,6 @@ class TopmateMcp < Formula
     end
   
     test do
-      system bin/"topmate-mcp", "--version"
+      system bin/"topmate-mcp", "--help"
     end
   end
