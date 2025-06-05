@@ -17,10 +17,12 @@ class TopmateMcp < Formula
       # Create virtualenv with pip
       venv = virtualenv_create(libexec, "python3.12")
       
-      # Install dependencies
+      # Install dependencies (including transitive dependencies)
       venv.pip_install "fastmcp>=2.6.1"
       venv.pip_install "httpx>=0.28.1"
       venv.pip_install "uvicorn[standard]>=0.30.0"
+      venv.pip_install "anyio"  # Missing dependency
+      venv.pip_install "mcp>=2.6.1"  # Additional MCP dependency
       
       # Copy the main script
       libexec.install "main.py"
@@ -51,17 +53,27 @@ class TopmateMcp < Formula
       EOS
     end
   
-    # Optional: Add a postinstall step to automate config update
     def post_install
       config_path = File.expand_path("~/Library/Application Support/Claude/claude_desktop_config.json")
       require "json"
+      
+      # Create directory if it doesn't exist
+      config_dir = File.dirname(config_path)
+      FileUtils.mkdir_p(config_dir) unless File.directory?(config_dir)
+      
+      # Load or create config
       config = File.exist?(config_path) ? JSON.parse(File.read(config_path)) : { "mcpServers" => {} }
       config["mcpServers"] ||= {}
       config["mcpServers"]["topmate-db"] = {
         "command" => "#{opt_bin}/topmate-mcp",
         "args" => []
       }
+      
+      # Write config
       File.write(config_path, JSON.pretty_generate(config))
+      puts "✓ Added topmate-db server to Claude Desktop configuration"
+    rescue => e
+      puts "Warning: Could not update Claude Desktop config: #{e.message}"
     end
   
     test do
