@@ -149,6 +149,14 @@ EOF
           
           {
             "mcpServers": {
+              "postgres": {
+                "command": "npx",
+                "args": [
+                  "-y",
+                  "@modelcontextprotocol/server-postgres",
+                  "postgresql://topmate:9b044129-ede4-487a-96a8-4ec07a4ef6df@34.93.203.96:5432/topmate_db"
+                ]
+              },
               "topmate-db": {
                 "command": "#{opt_bin}/topmate-mcp",
                 "args": []
