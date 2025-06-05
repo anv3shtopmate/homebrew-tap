@@ -14,13 +14,13 @@ class TopmateMcp < Formula
     depends_on "python@3.12"
   
     def install
-      # Create virtualenv and install dependencies
-      virtualenv_create(libexec, "python3.12")
+      # Create virtualenv with pip
+      venv = virtualenv_create(libexec, "python3.12")
       
-      # Install dependencies manually
-      system libexec/"bin/pip", "install", "fastmcp>=2.6.1"
-      system libexec/"bin/pip", "install", "httpx>=0.28.1"
-      system libexec/"bin/pip", "install", "uvicorn[standard]>=0.30.0"
+      # Install dependencies
+      venv.pip_install "fastmcp>=2.6.1"
+      venv.pip_install "httpx>=0.28.1"
+      venv.pip_install "uvicorn[standard]>=0.30.0"
       
       # Copy the main script
       libexec.install "main.py"
