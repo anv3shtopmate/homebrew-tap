@@ -75,66 +75,102 @@ class TopmateMcp < Formula
         export PYTHONPATH="#{libexec}:$PYTHONPATH"
         exec "#{libexec}/bin/python" "#{libexec}/main.py" "$@"
       EOS
+      
+      # Create Claude Desktop configuration helper script
+      (bin/"topmate-mcp-configure-claude").write <<~EOS
+        #!/bin/bash
+        set -e
+        
+        CONFIG_PATH="$HOME/Library/Application Support/Claude/claude_desktop_config.json"
+        
+        echo "Configuring Claude Desktop for Topmate MCP Server..."
+        
+        # Create directory if it doesn't exist
+        mkdir -p "$(dirname "$CONFIG_PATH")"
+        
+        # Create or update config file
+        if [ -f "$CONFIG_PATH" ]; then
+          echo "Updating existing Claude Desktop configuration..."
+          # Use jq if available, otherwise use python
+          if command -v jq > /dev/null; then
+            jq '.mcpServers["topmate-db"] = {"command": "#{opt_bin}/topmate-mcp", "args": []}' "$CONFIG_PATH" > "$CONFIG_PATH.tmp" && mv "$CONFIG_PATH.tmp" "$CONFIG_PATH"
+          else
+            python3 -c "
+import json
+import sys
+with open('$CONFIG_PATH', 'r') as f:
+    config = json.load(f)
+config.setdefault('mcpServers', {})
+config['mcpServers']['topmate-db'] = {
+    'command': '#{opt_bin}/topmate-mcp',
+    'args': []
+}
+with open('$CONFIG_PATH', 'w') as f:
+    json.dump(config, f, indent=2)
+"
+          fi
+        else
+          echo "Creating new Claude Desktop configuration..."
+          cat > "$CONFIG_PATH" << 'EOF'
+{
+  "mcpServers": {
+    "topmate-db": {
+      "command": "#{opt_bin}/topmate-mcp",
+      "args": []
+    }
+  }
+}
+EOF
+        fi
+        
+        echo "✓ Successfully configured Claude Desktop!"
+        echo "Configuration saved to: $CONFIG_PATH"
+        echo ""
+        echo "Please restart Claude Desktop for the changes to take effect."
+      EOS
+      
+      chmod 0755, bin/"topmate-mcp-configure-claude"
     end
   
     def caveats
       <<~EOS
-        To enable this server in Claude for Desktop, add the following to your
-        ~/Library/Application Support/Claude/claude_desktop_config.json file:
-  
-        "topmate-db": {
-          "command": "#{opt_bin}/topmate-mcp",
-          "args": []
-        }
-        You can automate this by running:
-          brew postinstall topmate-mcp
-  
-        To use this package, make sure you have set HOMEBREW_GITHUB_API_TOKEN
-        in your environment:
+        Topmate MCP Server has been installed successfully!
+        
+        🔧 CLAUDE DESKTOP CONFIGURATION
+        
+        To enable this server in Claude Desktop, you have two options:
+        
+        Option 1 (Recommended): Use the configuration helper script
+          #{opt_bin}/topmate-mcp-configure-claude
+        
+        Option 2: Manual configuration
+          Add the following to your Claude Desktop config file at:
+          ~/Library/Application Support/Claude/claude_desktop_config.json
+          
+          {
+            "mcpServers": {
+              "topmate-db": {
+                "command": "#{opt_bin}/topmate-mcp",
+                "args": []
+              }
+            }
+          }
+        
+        📋 SETUP REQUIREMENTS
+        
+        Make sure you have set HOMEBREW_GITHUB_API_TOKEN in your environment:
           export HOMEBREW_GITHUB_API_TOKEN=your_token_here
+        
+        🚀 USAGE
+        
+        Test the server directly:
+          #{opt_bin}/topmate-mcp
+        
+        Configure Claude Desktop:
+          #{opt_bin}/topmate-mcp-configure-claude
+        
+        After configuration, restart Claude Desktop to load the MCP server.
       EOS
-    end
-  
-    def post_install
-      config_path = File.expand_path("~/Library/Application Support/Claude/claude_desktop_config.json")
-      require "json"
-      
-      # Debug: Check file existence and permissions
-      if File.exist?(config_path)
-        puts "Config file exists, checking permissions:"
-        system "ls", "-la", config_path
-      else
-        puts "Config file does not exist, will create it."
-      end
-      
-      # Create directory if it doesn't exist
-      config_dir = File.dirname(config_path)
-      unless File.directory?(config_dir)
-        puts "Creating directory: #{config_dir}"
-        FileUtils.mkdir_p(config_dir)
-      end
-      
-      # Load or create config
-      config = File.exist?(config_path) ? JSON.parse(File.read(config_path)) : { "mcpServers" => {} }
-      config["mcpServers"] ||= {}
-      config["mcpServers"]["topmate-db"] = {
-        "command" => "#{opt_bin}/topmate-mcp",
-        "args" => []
-      }
-      
-      # Write config
-      File.write(config_path, JSON.pretty_generate(config))
-      puts "✓ Added topmate-db server to Claude Desktop configuration"
-      puts "Config written to: #{config_path}"
-    rescue => e
-      puts "Warning: Could not update Claude Desktop config: #{e.message}"
-      puts "Error details: #{e.class}: #{e.message}"
-      if File.exist?(config_path)
-        puts "File permissions:"
-        system "ls", "-la", config_path
-      else
-        puts "File does not exist: #{config_path}"
-      end
     end
   
     test do
