@@ -54,4 +54,10 @@ class GitHubPrivateRepositoryReleaseDownloadStrategy < GitHubPrivateRepositoryDo
   def download_url
     "https://github.com/#{@owner}/#{@repo}/archive/refs/tags/#{@tag}.tar.gz"
   end
+
+  private
+
+  def _fetch(url:, resolved_url:, timeout:)
+    curl_download download_url, "--header", "Authorization: token #{@github_token}", to: temporary_path
+  end
 end 
