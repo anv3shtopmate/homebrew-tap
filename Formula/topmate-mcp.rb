@@ -99,12 +99,20 @@ class TopmateMcp < Formula
       config_path = File.expand_path("~/Library/Application Support/Claude/claude_desktop_config.json")
       require "json"
       
-      # Debug: Check file permissions
-      system "ls", "-la", config_path
+      # Debug: Check file existence and permissions
+      if File.exist?(config_path)
+        puts "Config file exists, checking permissions:"
+        system "ls", "-la", config_path
+      else
+        puts "Config file does not exist, will create it."
+      end
       
       # Create directory if it doesn't exist
       config_dir = File.dirname(config_path)
-      FileUtils.mkdir_p(config_dir) unless File.directory?(config_dir)
+      unless File.directory?(config_dir)
+        puts "Creating directory: #{config_dir}"
+        FileUtils.mkdir_p(config_dir)
+      end
       
       # Load or create config
       config = File.exist?(config_path) ? JSON.parse(File.read(config_path)) : { "mcpServers" => {} }
@@ -117,10 +125,16 @@ class TopmateMcp < Formula
       # Write config
       File.write(config_path, JSON.pretty_generate(config))
       puts "✓ Added topmate-db server to Claude Desktop configuration"
+      puts "Config written to: #{config_path}"
     rescue => e
       puts "Warning: Could not update Claude Desktop config: #{e.message}"
-      puts "File permissions:"
-      system "ls", "-la", config_path if File.exist?(config_path)
+      puts "Error details: #{e.class}: #{e.message}"
+      if File.exist?(config_path)
+        puts "File permissions:"
+        system "ls", "-la", config_path
+      else
+        puts "File does not exist: #{config_path}"
+      end
     end
   
     test do
