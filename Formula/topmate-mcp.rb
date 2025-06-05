@@ -22,7 +22,6 @@ class TopmateMcp < Formula
       venv.pip_install "httpx>=0.28.1"
       venv.pip_install "uvicorn[standard]>=0.30.0"
       venv.pip_install "anyio"  # Missing dependency
-      venv.pip_install "mcp>=2.6.1"  # Additional MCP dependency
       
       # Copy the main script
       libexec.install "main.py"
