@@ -5,10 +5,10 @@ class TopmateMcp < Formula
   
     desc "Topmate DB MCP Server"
     homepage "https://github.com/topmate-io/topmate-db-mcp-server"
-    url "https://github.com/topmate-io/topmate-db-mcp-server/archive/refs/tags/v0.1.2.tar.gz",
+    url "https://github.com/topmate-io/topmate-db-mcp-server/archive/refs/tags/v0.1.3.tar.gz",
         using: GitHubPrivateRepositoryReleaseDownloadStrategy
-    sha256 "4c79d5a80771b3791ca1968337f7479b7fb8bb7b7873a90c245229b8455e995c"
-    version "0.1.0"
+    sha256 "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5"
+    version "0.1.3"
     license "MIT"
   
     depends_on "python@3.12"
@@ -66,8 +66,9 @@ class TopmateMcp < Formula
       
       dependencies.each { |dep| venv.pip_install dep }
       
-      # Copy the main script
+      # Copy the main script and business logic module
       libexec.install "main.py"
+      libexec.install "topmate_buisness_logic.py"
       
       # Create wrapper script
       (bin/"topmate-mcp").write <<~EOS
@@ -166,8 +167,10 @@ EOF
         
         📋 SETUP REQUIREMENTS
         
-        Make sure you have set HOMEBREW_GITHUB_API_TOKEN in your environment:
+        Make sure you have set the required environment variables:
           export HOMEBREW_GITHUB_API_TOKEN=your_token_here
+          export TOPMATE_LOGIC_HUB_BASE_URL=your_api_base_url_here
+          export TOPMATE_LOGIC_HUB_API_KEY=your_api_key_here
         
         🚀 USAGE
         
