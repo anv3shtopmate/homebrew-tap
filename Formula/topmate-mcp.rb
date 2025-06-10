@@ -164,7 +164,11 @@ EOF
               },
               "topmate-db": {
                 "command": "#{opt_bin}/topmate-mcp",
-                "args": []
+                "args": [],
+                "env": {
+                  "TOPMATE_LOGIC_HUB_BASE_URL": "your_api_base_url_here",
+                  "TOPMATE_LOGIC_HUB_API_KEY": "your_api_key_here"
+                }
               }
             }
           }
