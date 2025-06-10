@@ -7,7 +7,7 @@ class TopmateMcp < Formula
     homepage "https://github.com/topmate-io/topmate-db-mcp-server"
     url "https://github.com/topmate-io/topmate-db-mcp-server/archive/refs/tags/v0.1.4.tar.gz",
         using: GitHubPrivateRepositoryReleaseDownloadStrategy
-    sha256 "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5"
+    sha256 "57056857496bcf45aa6a117afb957a08bed69b29a181f8931e1db4cf4e710070"
     version "0.1.4"
     license "MIT"
   
